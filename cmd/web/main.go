@@ -11,7 +11,11 @@ func main() {
     mux.HandleFunc("/snippet", showSnippet)
     mux.HandleFunc("/snippet/create", createSnippet)
 
-    log.Println("Starting server on :2021")
-    err := http.ListenAndServe(":2021", mux)
+
+    fileServer := http.FileServer(http.Dir("../../ui/static/"))
+    mux.Handle("/static/", http.StripPrefix("/static", fileServer))
+
+    log.Println("Starting server on :2022")
+    err := http.ListenAndServe(":2022", mux)
     log.Fatal(err)
 }
