@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"github.com/19shubham11/snippetbox/pkg/models"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -40,8 +42,16 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		app.notFound(w)
 		return
 	}
-
-	fmt.Fprintf(w, "Display a specific snippet with ID %d...", id)
+	snippet, err := app.snippets.Get(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.notFound(w)
+		} else {
+			app.serverError(w, err)
+		}
+		return
+	}
+	fmt.Fprintf(w, "%v", snippet)
 }
 
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
@@ -51,10 +61,10 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// dummy snippet
+	// dummy snippet for now
 
 	title := "Oh look"
-	content := "Oh look again, I am trying to insert this, such post request"
+	content := "Oh look again, I am trying to insert this, such post much wow"
 	expires := "7"
 
 	id, dbErr := app.snippets.Insert(title, content, expires)
