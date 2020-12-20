@@ -51,5 +51,18 @@ func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte("Create a new snippet..."))
+	// dummy snippet
+
+	title := "Oh look"
+	content := "Oh look again, I am trying to insert this, such post request"
+	expires := "7"
+
+	id, dbErr := app.snippets.Insert(title, content, expires)
+	if dbErr != nil {
+		app.serverError(w, dbErr)
+		return
+	}
+
+	res := fmt.Sprintf("Created a new snippet with id %d", id)
+	w.Write([]byte(res))
 }
