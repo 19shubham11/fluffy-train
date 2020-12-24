@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/19shubham11/snippetbox/pkg/models"
-	// "html/template"
+	"html/template"
 	"net/http"
 	"strconv"
 )
@@ -59,7 +59,28 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	fmt.Fprintf(w, "%v", snippet)
+
+	data := &templateData{snippet}
+	files := []string{
+		"./ui/html/show.page.tmpl",
+		"./ui/html/base.layout.tmpl",
+		"./ui/html/footer.partial.tmpl",
+	}
+
+	// parse template files
+	ts, parseErr := template.ParseFiles(files...)
+	if err != nil {
+		app.errorLog.Println("error parsing files", parseErr.Error())
+		app.serverError(w, parseErr)
+		return
+	}
+
+	templateErr := ts.Execute(w, data)
+	if templateErr != nil {
+		app.errorLog.Println("template error", parseErr.Error())
+		app.serverError(w, parseErr)
+		return
+	}
 }
 
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
