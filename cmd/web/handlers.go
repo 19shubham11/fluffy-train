@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/19shubham11/snippetbox/pkg/models"
-	"html/template"
 	"net/http"
 	"strconv"
 )
@@ -21,26 +20,9 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := &templateData{Snippets: latestSnippets, Snippet: nil}
-	templateFiles := []string{
-		"./ui/html/home.page.tmpl",
-		"./ui/html/base.layout.tmpl",
-		"./ui/html/footer.partial.tmpl",
-	}
-
-	ts, parseErr := template.ParseFiles(templateFiles...)
-	if parseErr != nil {
-		app.errorLog.Println("template parse error", parseErr.Error())
-		app.serverError(w, parseErr)
-		return
-	}
-
-	templateErr := ts.Execute(w, data)
-	if templateErr != nil {
-		app.errorLog.Println("template err", parseErr.Error())
-		app.serverError(w, templateErr)
-		return
-	}
+	app.render(w, r, "home.page.tmpl", &templateData{
+		Snippets: latestSnippets,
+	})
 }
 
 func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
@@ -59,27 +41,9 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := &templateData{snippet, nil}
-	files := []string{
-		"./ui/html/show.page.tmpl",
-		"./ui/html/base.layout.tmpl",
-		"./ui/html/footer.partial.tmpl",
-	}
-
-	// parse template files
-	ts, parseErr := template.ParseFiles(files...)
-	if err != nil {
-		app.errorLog.Println("error parsing files", parseErr.Error())
-		app.serverError(w, parseErr)
-		return
-	}
-
-	templateErr := ts.Execute(w, data)
-	if templateErr != nil {
-		app.errorLog.Println("template error", parseErr.Error())
-		app.serverError(w, parseErr)
-		return
-	}
+	app.render(w, r, "show.page.tmpl", &templateData{
+		Snippet: snippet,
+	})
 }
 
 func (app *application) createSnippet(w http.ResponseWriter, r *http.Request) {
