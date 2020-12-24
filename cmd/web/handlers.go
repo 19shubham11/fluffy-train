@@ -18,30 +18,29 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	latestSnippets, err := app.snippets.Latest()
 	if err != nil {
 		app.serverError(w, err)
-	}
-	for _, snippet := range latestSnippets {
-		fmt.Fprintf(w, "%v\n", snippet)
+		return
 	}
 
-	// templateFiles := []string{
-	// 	"./ui/html/home.page.tmpl",
-	// 	"./ui/html/base.layout.tmpl",
-	// 	"./ui/html/footer.partial.tmpl",
-	// }
+	data := &templateData{Snippets: latestSnippets, Snippet: nil}
+	templateFiles := []string{
+		"./ui/html/home.page.tmpl",
+		"./ui/html/base.layout.tmpl",
+		"./ui/html/footer.partial.tmpl",
+	}
 
-	// ts, parseErr := template.ParseFiles(templateFiles...)
-	// if parseErr != nil {
-	// 	app.errorLog.Println("template parse error", parseErr.Error())
-	// 	app.serverError(w, parseErr)
-	// 	return
-	// }
+	ts, parseErr := template.ParseFiles(templateFiles...)
+	if parseErr != nil {
+		app.errorLog.Println("template parse error", parseErr.Error())
+		app.serverError(w, parseErr)
+		return
+	}
 
-	// templateErr := ts.Execute(w, nil)
-	// if templateErr != nil {
-	// 	app.errorLog.Println("template err", parseErr.Error())
-	// 	app.serverError(w, templateErr)
-	// 	return
-	// }
+	templateErr := ts.Execute(w, data)
+	if templateErr != nil {
+		app.errorLog.Println("template err", parseErr.Error())
+		app.serverError(w, templateErr)
+		return
+	}
 }
 
 func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
@@ -60,7 +59,7 @@ func (app *application) showSnippet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := &templateData{snippet}
+	data := &templateData{snippet, nil}
 	files := []string{
 		"./ui/html/show.page.tmpl",
 		"./ui/html/base.layout.tmpl",
