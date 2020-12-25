@@ -11,6 +11,7 @@ Since I am using html templates, the endpoints return the final html instead of 
 
 ## Dependencies
 - [Go MySQL driver](https://github.com/go-sql-driver/mysql)
+- [Alice](https://github.com/justinas/alice) for clean middleware chaining
 
 ## Preview
 - Clone the repo and from the root directory run
