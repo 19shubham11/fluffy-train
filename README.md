@@ -4,8 +4,9 @@ This is a web application written in go using http templates from the standard l
 A notes/snippet app with basic CRUD operations. I have used mysql as the database for now, but any db can be used as the db methods are abstracted in the `pkg` directory.
 
 The main routes are :
-- `/snippets/` Returns the 10 latest snippets
-- `/snippets?id=x` Returns a snippet with id `x`
+- `GET /` Returns the 10 latest snippets
+- `GET /snippets/{id}` Returns a snippet with id `x`
+- `GET /static/` Is a fileserver that hosts files from the `/ui/static` directory. 
 
 Since I am using html templates, the endpoints return the final html instead of json data.
 
@@ -27,7 +28,6 @@ Currently, it is expected that MySQL is running on the same host as that of the 
 This app is a work in progress and a lot of things are missing, mainly -
 - DB Migrations whenever the app starts (currently I ran the queries manually)
 - Proper POST and DELETE endpoints
-- Proper routing (does not support path params for now)
 - Integration tests for the db
 - Add users and login
 - Host this somewhere?
