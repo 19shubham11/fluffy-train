@@ -28,6 +28,6 @@ Currently, it is expected that MySQL is running on the same host as that of the 
 This app is a work in progress and a lot of things are missing, mainly -
 - DB Migrations whenever the app starts (currently I ran the queries manually)
 - Proper POST and DELETE endpoints
-- Integration tests for the db
+- Setup integration tests with a docker image (currently uses local db with a local user)
 - Add users and login
 - Host this somewhere?
