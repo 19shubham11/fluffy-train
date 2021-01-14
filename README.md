@@ -29,5 +29,6 @@ This app is a work in progress and a lot of things are missing, mainly -
 - DB Migrations whenever the app starts (currently I ran the queries manually)
 - Proper POST and DELETE endpoints
 - Setup integration tests with a docker image (currently uses local db with a local user)
+- Remove the library for middleware chaining 
 - Add users and login
 - Host this somewhere?
