@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    environment: build
+    env:
+      MYSQL_PASS: ${{ secrets.MYSQL_PASS }}
+      MYSQL_USER: ${{ secrets.MYSQL_USER }}
+    services:
+      mysql:
+        image: mysql
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_PASS }}
+        ports:
+          - 3306
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup mysql
+      run: docker run -p 3306:3306 -e  MYSQL_ROOT_PASSWORD=$MYSQL_PASS -d mysql
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.15.6
+    - name: Install Dependencies
+      run: go get -d ./...
+    - name: Build
+      run: go build ./cmd/web
+    - name: Test
+      run: go test -v ./...
