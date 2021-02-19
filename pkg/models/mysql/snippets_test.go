@@ -1,44 +1,42 @@
 package mysql
 
 import (
-	"github.com/19shubham11/snippetbox/pkg/models"
+	"database/sql"
+	"os"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/19shubham11/snippetbox/pkg/models"
 )
 
-func TestInsert(t *testing.T) {
-	db, teardown := newTestDB(t)
+var db *sql.DB
+
+func TestMain(m *testing.M) {
+	var teardown func()
+	db, teardown = newTestDB()
 	defer teardown()
+	code := m.Run()
+	os.Exit(code)
+}
+
+func TestInsert(t *testing.T) {
 	snippet := SnippetModel{db}
 	t.Run("Insert into the db", func(t *testing.T) {
 		// insert once
-		id1, err := snippet.Insert("some title", "some content", "7")
+		_, err := snippet.Insert("Title1", "some content 1", "7")
 		if err != nil {
 			t.Fatal(err)
 		}
-
-		want1 := 1
-		if id1 != want1 {
-			t.Errorf("Got %d, want %d", id1, want1)
-		}
-
 		// insert again
-		id2, err := snippet.Insert("some title", "some content", "7")
+		_, err = snippet.Insert("Title2", "some content 2", "11")
 		if err != nil {
 			t.Fatal(err)
-		}
-
-		want2 := 2
-		if id2 != want2 {
-			t.Errorf("Got %d, want %d", id2, want2)
 		}
 	})
 }
 
 func TestGet(t *testing.T) {
-	db, teardown := newTestDB(t)
-	defer teardown()
 	snippet := SnippetModel{db}
 
 	t.Run("Return an existing recrod for a valid id", func(t *testing.T) {
@@ -55,7 +53,7 @@ func TestGet(t *testing.T) {
 		utcFormatWithoutMilliseconds := "2006-01-02 15:04:05 +0000 UTC"
 
 		expectedModel := models.Snippet{
-			ID:      1,
+			ID:      id,
 			Title:   "Title1",
 			Content: "some content",
 			Created: time.Now().UTC(),
@@ -76,7 +74,7 @@ func TestGet(t *testing.T) {
 	})
 
 	t.Run("Return error for an invalid id", func(t *testing.T) {
-		got, err := snippet.Get(11)
+		got, err := snippet.Get(11111)
 
 		if !reflect.DeepEqual(err, models.ErrNoRecord) {
 			t.Errorf("Expected error %v got %v", err, got)

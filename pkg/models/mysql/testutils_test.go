@@ -2,41 +2,93 @@ package mysql
 
 import (
 	"database/sql"
+	"fmt"
+	"os"
+
 	_ "github.com/go-sql-driver/mysql"
-	"io/ioutil"
-	"testing"
+	"github.com/golang-migrate/migrate"
+	"github.com/golang-migrate/migrate/database/mysql"
+	_ "github.com/golang-migrate/migrate/source/file"
 )
 
-func readFile(t *testing.T, path string) []byte {
-	t.Helper()
-	script, err := ioutil.ReadFile(path)
+// func readFile(t *testing.T, path string) []byte {
+// 	t.Helper()
+// 	script, err := ioutil.ReadFile(path)
 
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// 	return script
+// }
+
+// func execSQLScript(t *testing.T, db *sql.DB, script []byte) {
+// 	t.Helper()
+// 	_, err := db.Exec(string(script))
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// }
+
+func newTestDB() (*sql.DB, func()) {
+	mysqlUsername := os.Getenv("MYSQLUSER")
+	mysqlPassword := os.Getenv("MYSQLPASS")
+
+	dsn := fmt.Sprintf("%s:%s@tcp(127.0.0.1:3306)/", mysqlUsername, mysqlPassword)
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		t.Fatal(err)
+		panic(err)
 	}
-	return script
-}
+	defer db.Close()
 
-func execSQLScript(t *testing.T, db *sql.DB, script []byte) {
-	t.Helper()
-	_, err := db.Exec(string(script))
+	dbName := "snippetbox"
+	_, err = db.Exec("CREATE DATABASE IF NOT EXISTS " + dbName)
 	if err != nil {
-		t.Fatal(err)
+		panic(err)
 	}
-}
 
-func newTestDB(t *testing.T) (*sql.DB, func()) {
-	db, err := sql.Open("mysql", "test_web:pass@/test_snippetbox?parseTime=true&multiStatements=true")
+	_, err = db.Exec("USE " + dbName)
 	if err != nil {
-		t.Fatal(err)
+		panic(err)
 	}
 
-	setupScript := readFile(t, "./testdata/setup.sql")
-	execSQLScript(t, db, setupScript)
+	dsn = fmt.Sprintf("%s:%s@tcp(127.0.0.1:3306)/%s?multiStatements=true&&parseTime=true", mysqlUsername, mysqlPassword, dbName)
+	db, err = sql.Open("mysql", dsn)
+	if err != nil {
+		panic(err)
+	}
 
+	m := doMigrations(db)
 	return db, func() {
-		tearDownScript := readFile(t, "./testdata/teardown.sql")
-		execSQLScript(t, db, tearDownScript)
+		err := m.Steps(-1)
+		if err != nil {
+			fmt.Println("Error Migrating DOWN")
+			panic(err)
+		}
 		db.Close()
 	}
+}
+
+func doMigrations(db *sql.DB) *migrate.Migrate {
+	driver, _ := mysql.WithInstance(db, &mysql.Config{})
+
+	pwd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	migrationsPath := "file:///" + pwd + "/migrations"
+	m, err := migrate.NewWithDatabaseInstance(
+		migrationsPath,
+		"mysql",
+		driver,
+	)
+	if err != nil {
+		panic(err)
+	}
+	err = m.Steps(-1)
+	err = m.Steps(1)
+	if err != nil {
+		fmt.Println("Error Migrating UP")
+		panic(err)
+	}
+	return m
 }
