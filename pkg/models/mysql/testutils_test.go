@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate"
@@ -30,8 +31,8 @@ import (
 // }
 
 func newTestDB() (*sql.DB, func()) {
-	mysqlUsername := os.Getenv("MYSQLUSER")
-	mysqlPassword := os.Getenv("MYSQLPASS")
+	mysqlUsername := os.Getenv("MYSQL_USER")
+	mysqlPassword := os.Getenv("MYSQL_PASS")
 
 	dsn := fmt.Sprintf("%s:%s@tcp(127.0.0.1:3306)/", mysqlUsername, mysqlPassword)
 	db, err := sql.Open("mysql", dsn)
@@ -56,6 +57,7 @@ func newTestDB() (*sql.DB, func()) {
 	if err != nil {
 		panic(err)
 	}
+	db.SetConnMaxLifetime(time.Minute * 4)
 
 	m := doMigrations(db)
 	return db, func() {
